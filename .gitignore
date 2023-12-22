@@ -1,4 +1,5 @@
 .apigateway-invoke-url
 .venv
+build
 test-remote
 test-repo
