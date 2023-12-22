@@ -1,5 +1,5 @@
 * ~~Re-write into cloudformation for easy deployment~~
-* Create test requests for each endpoint
+* ~~Create test requests for each endpoint~~
 * Test each endpoint with the test request just to see that we are reaching the lambda backend
 * Find or write a schema for APIMethodProjectRepoInfoLfsLocksVerifyPost's request model.
 * Consider separating out APILambdaIAMRole into separate roles for each lambda and/or get more specific with the log groups they can write to.
