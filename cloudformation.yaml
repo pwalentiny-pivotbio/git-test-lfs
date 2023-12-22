@@ -1,0 +1,826 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Git LFS API
+Resources:
+
+
+  APILambdaIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource:
+                  # TODO Create separate roles for each lambda
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/git-lfs-api-locks-get:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*
+          PolicyName: lambda
+
+
+  APILambdaProjectRepoInfoLfsLocksGet:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          def handler(event,context):
+            return event
+      Description: Handler for GET /{project}/{repo}/info/lfs/locks
+      FunctionName: git-lfs-api-locks-get
+      Handler: index.handler
+      MemorySize: 128
+      Role: !GetAtt APILambdaIAMRole.Arn
+      Runtime: python3.12
+
+
+  APILambdaProjectRepoInfoLfsLocksPost:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          def handler(event,context):
+            return event
+      Description: Handler for POST /{project}/{repo}/info/lfs/locks/
+      FunctionName: git-lfs-api-locks-post
+      Handler: index.handler
+      MemorySize: 128
+      Role: !GetAtt APILambdaIAMRole.Arn
+      Runtime: python3.12
+
+
+  APILambdaProjectRepoInfoLfsLocksIdUnlockPost:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          def handler(event,context):
+            return event
+      Description: Handler for POST /{project}/{repo}/info/lfs/locks/{id}/unlock/
+      FunctionName: git-lfs-api-locks-id-unlock-post
+      Handler: index.handler
+      MemorySize: 128
+      Role: !GetAtt APILambdaIAMRole.Arn
+      Runtime: python3.12
+
+
+  APILambdaProjectRepoInfoLfsLocksVerifyPost:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          def handler(event,context):
+            return event
+      Description: Handler for POST /{project}/{repo}/info/lfs/locks/verify/
+      FunctionName: git-lfs-api-locks-verify-post
+      Handler: index.handler
+      MemorySize: 128
+      Role: !GetAtt APILambdaIAMRole.Arn
+      Runtime: python3.12
+
+
+  APILambdaProjectRepoInfoLfsObjectsBatchPost:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          def handler(event,context):
+            return event
+      Description: Handler for POST /{project}/{repo}/info/lfs/objects/batch
+      FunctionName: git-lfs-api-objects-batch-post
+      Handler: index.handler
+      MemorySize: 128
+      Role: !GetAtt APILambdaIAMRole.Arn
+      Runtime: python3.12
+
+
+  APILambdaLogGroupProjectRepoInfoLfsLocksGet:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/git-lfs-api-locks-get
+      RetentionInDays: 14
+
+
+  APILambdaLogGroupProjectRepoInfoLfsLocksPost:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/git-lfs-api-locks-post
+      RetentionInDays: 14
+
+
+  APILambdaLogGroupProjectRepoInfoLfsLocksIdUnlockPost:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/git-lfs-api-locks-id-unlock-post
+      RetentionInDays: 14
+
+
+  APILambdaLogGroupProjectRepoInfoLfsLocksVerifyPost:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/git-lfs-api-locks-verify-post
+      RetentionInDays: 14
+
+
+  APILambdaLogGroupProjectRepoInfoLfsObjectsBatchPost:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/git-lfs-api-objects-batch-post
+      RetentionInDays: 14
+
+
+  APILambdaPermissionProjectRepoInfoLfsLocksGet:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref APILambdaProjectRepoInfoLfsLocksGet
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${API}/*/GET/*/*/info/lfs/locks
+
+
+  APILambdaPermissionProjectRepoInfoLfsLocksPost:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref APILambdaProjectRepoInfoLfsLocksPost
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${API}/*/POST/*/*/info/lfs/locks
+
+
+  APILambdaPermissionProjectRepoInfoLfsLocksIdUnlockPost:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref APILambdaProjectRepoInfoLfsLocksIdUnlockPost
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${API}/*/POST/*/*/info/lfs/locks/*/unlock
+
+
+  APILambdaPermissionProjectRepoInfoLfsLocksVerifyPost:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref APILambdaProjectRepoInfoLfsLocksVerifyPost
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${API}/*/POST/*/*/info/lfs/locks/verify
+
+
+  APILambdaPermissionProjectRepoInfoLdsObjectsBatchPost:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref APILambdaProjectRepoInfoLfsObjectsBatchPost
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${API}/*/POST/*/*/info/lfs/objects/batch
+
+
+  API:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Description: Git LFS API
+      Name: git-lfs-api
+      EndpointConfiguration:
+          Types: 
+            - EDGE
+            # - REGIONAL
+
+
+  APIModelBatchRequest:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      ContentType: application/vnd.git-lfs+json
+      Description: Git LFS HTTPS Batch API Request
+      RestApiId: !Ref API
+      Schema:
+        {
+          "$schema": "http://json-schema.org/draft-04/schema",
+          "title": "Git LFS HTTPS Batch API Request",
+          "type": "object",
+          "properties": {
+            "transfers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "operation": {
+              "type": "string"
+            },
+            "objects": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "oid": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "authenticated": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["oid", "size"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["objects", "operation"]
+        }
+
+
+  APIModelBatchResponse:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      ContentType: application/vnd.git-lfs+json
+      Description: Git LFS HTTPS Batch API Response
+      RestApiId: !Ref API
+      Schema:
+        {
+            "$schema": "http://json-schema.org/draft-04/schema",
+            "title": "Git LFS HTTPS Batch API Response",
+            "type": "object",
+          
+            "definitions": {
+              "action": {
+                "type": "object",
+                "properties": {
+                  "href": {
+                    "type": "string"
+                  },
+                  "header": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "expires_in": {
+                      "type": "number",
+                      "maximum": 2147483647,
+                      "minimum": -2147483647
+                  },
+                  "expires_at": {
+                    "type": "string"
+                  }
+                },
+                "required": ["href"],
+                "additionalProperties": false
+              }
+            },
+          
+            "properties": {
+              "transfer": {
+                "type": "string"
+              },
+              "objects": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "oid": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "authenticated": {
+                      "type": "boolean"
+                    },
+                    "actions": {
+                      "type": "object",
+                      "properties": {
+                        "download": { "$ref": "#/definitions/action" },
+                        "upload": { "$ref": "#/definitions/action" },
+                        "verify": { "$ref": "#/definitions/action" }
+                      },
+                      "additionalProperties": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "number"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["oid", "size"],
+                  "additionalProperties": false
+                }
+              },
+              "message": {
+                "type": "string"
+              },
+              "request_id": {
+                "type": "string"
+              },
+              "documentation_url": {
+                "type": "string"
+              }
+            },
+            "required": ["objects"]
+          }
+
+
+  APIModelLockCreateRequest:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      ContentType: application/vnd.git-lfs+json
+      Description: Git LFS HTTPS Lock Creation API Request
+      RestApiId: !Ref API
+      Schema:
+        {
+            "$schema": "http://json-schema.org/draft-04/schema",
+            "title": "Git LFS HTTPS Lock Creation API Request",
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "ref": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": ["name"]
+              }
+            },
+            "required": ["path"]
+          }
+
+
+  APIModelLockCreateResponse:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      ContentType: application/vnd.git-lfs+json
+      Description: Git LFS HTTPS Lock Creation API Response
+      RestApiId: !Ref API
+      Schema:
+        {
+            "$schema": "http://json-schema.org/draft-04/schema",
+            "title": "Git LFS HTTPS Lock Creation API Response",
+            "type": "object",
+            "properties": {
+              "lock": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "locked_at": {
+                    "type": "string"
+                  },
+                  "owner": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "required": ["id", "path", "locked_at"]
+              },
+              "message": {
+                "type": "string"
+              },
+              "request_id": {
+                "type": "string"
+              },
+              "documentation_url": {
+                "type": "string"
+              }
+            },
+            "required": ["lock"]
+          }
+
+
+  APIModelLockListResponse:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      ContentType: application/vnd.git-lfs+json
+      Description: Git LFS HTTPS Lock List API Response
+      RestApiId: !Ref API
+      Schema:
+        {
+            "$schema": "http://json-schema.org/draft-04/schema",
+            "title": "Git LFS HTTPS Lock List API Response",
+            "type": "object",
+            "properties": {
+              "locks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "locked_at": {
+                      "type": "string"
+                    },
+                    "owner": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "next_cursor": {
+                "type": "string"
+              }
+            },
+            "required": ["locks"]
+          }
+
+
+  APIModelLockDeleteRequest:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      ContentType: application/vnd.git-lfs+json
+      Description: Git LFS HTTPS Lock Deletion API Request
+      RestApiId: !Ref API
+      Schema:
+        {
+            "$schema": "http://json-schema.org/draft-04/schema",
+            "title": "Git LFS HTTPS Lock Deletion API Request",
+            "type": "object",
+            "properties": {
+              "force": {
+                "type": "boolean"
+              },
+              "ref": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+
+
+  APIModelLockVerifyResponse:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      ContentType: application/vnd.git-lfs+json
+      Description: Git LFS HTTPS Lock Verify API Response
+      RestApiId: !Ref API
+      Schema:
+        {
+            "$schema": "http://json-schema.org/draft-04/schema",
+            "title": "Git LFS HTTPS Lock Verify API Response",
+            "type": "object",
+          
+            "definitions": {
+              "lock": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "locked_at": {
+                    "type": "string"
+                  },
+                  "owner": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "required": ["id", "path"]
+              }
+            },
+          
+            "properties": {
+              "ours": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/lock"
+                }
+              },
+              "theirs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/lock"
+                }
+              },
+              "next_cursor": {
+                "type": "string"
+              }
+            },
+            "required": ["ours", "theirs"]
+          }
+
+
+  APIResourceProject:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt API.RootResourceId
+      PathPart: "{project}"
+      RestApiId: !Ref API
+  
+
+  APIResourceProjectRepo:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProject
+      PathPart: "{repo}"
+      RestApiId: !Ref API
+  
+
+  APIResourceProjectRepoInfo:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProjectRepo
+      PathPart: "info"
+      RestApiId: !Ref API
+ 
+
+  APIResourceProjectRepoInfoLfs:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProjectRepoInfo
+      PathPart: "lfs"
+      RestApiId: !Ref API
+
+
+  APIResourceProjectRepoInfoLfsLocks:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProjectRepoInfoLfs
+      PathPart: "locks"
+      RestApiId: !Ref API
+
+
+  APIResourceProjectRepoInfoLfsLocksId:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProjectRepoInfoLfsLocks
+      PathPart: "{id}"
+      RestApiId: !Ref API
+
+
+  APIResourceProjectRepoInfoLfsLocksIdUnlock:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProjectRepoInfoLfsLocksId
+      PathPart: "unlock"
+      RestApiId: !Ref API
+
+
+  APIResourceProjectRepoInfoLfsLocksVerify:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProjectRepoInfoLfsLocks
+      PathPart: "verify"
+      RestApiId: !Ref API
+
+
+  APIResourceProjectRepoInfoLfsObjects:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProjectRepoInfoLfs
+      PathPart: "objects"
+      RestApiId: !Ref API
+
+
+  APIResourceProjectRepoInfoLfsObjectsBatch:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProjectRepoInfoLfsObjects
+      PathPart: "batch"
+      RestApiId: !Ref API
+
+
+  APIMethodProjectRepoInfoLfsLocksGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - StatusCode: "200"
+        PassthroughBehavior: NEVER
+        RequestParameters:
+          integration.request.path.project: method.request.path.project
+          integration.request.path.repo: method.request.path.repo
+        RequestTemplates:
+          application/vnd.git-lfs+json: ""
+        Type: AWS
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaProjectRepoInfoLfsLocksGet.Arn}/invocations
+      MethodResponses:
+        - ResponseModels: 
+            application/vnd.git-lfs+json: !Ref APIModelLockListResponse
+          # ResponseParameters: 
+          #   Key: Value
+          StatusCode: "200"
+      ResourceId: !GetAtt APIResourceProjectRepoInfoLfsLocks.ResourceId
+      RestApiId: !Ref API
+      RequestParameters:
+        method.request.path.project: integration.request.path.project
+        method.request.path.repo: integration.request.path.repo
+
+
+  APIMethodProjectRepoInfoLfsLocksPost:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - StatusCode: "200"
+        PassthroughBehavior: NEVER
+        RequestParameters:
+          integration.request.path.project: method.request.path.project
+          integration.request.path.repo: method.request.path.repo
+        RequestTemplates:
+          application/vnd.git-lfs+json: ""
+        Type: AWS
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaProjectRepoInfoLfsLocksPost.Arn}/invocations
+      MethodResponses:
+        - ResponseModels: 
+            application/vnd.git-lfs+json: !Ref APIModelLockCreateResponse
+          # ResponseParameters: 
+          #   Key: Value
+          StatusCode: "200"
+      ResourceId: !GetAtt APIResourceProjectRepoInfoLfsLocks.ResourceId
+      RestApiId: !Ref API
+      RequestModels:
+        application/vnd.git-lfs+json: !Ref APIModelLockCreateRequest
+      RequestParameters:
+        method.request.path.project: integration.request.path.project
+        method.request.path.repo: integration.request.path.repo
+      RequestValidatorId: !Ref APIRequestValidator
+
+
+  APIMethodProjectRepoInfoLfsLocksIdUnlockPost:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - StatusCode: "200"
+        PassthroughBehavior: NEVER
+        RequestParameters:
+          integration.request.path.project: method.request.path.project
+          integration.request.path.repo: method.request.path.repo
+          integration.request.path.id: method.request.path.id
+        RequestTemplates:
+          application/vnd.git-lfs+json: ""
+        Type: AWS
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaProjectRepoInfoLfsLocksIdUnlockPost.Arn}/invocations
+      MethodResponses:
+        - ResponseModels: 
+            application/vnd.git-lfs+json: !Ref APIModelLockCreateResponse
+          # ResponseParameters: 
+          #   Key: Value
+          StatusCode: "200"
+      ResourceId: !GetAtt APIResourceProjectRepoInfoLfsLocksIdUnlock.ResourceId
+      RestApiId: !Ref API
+      RequestModels:
+        application/vnd.git-lfs+json: !Ref APIModelLockCreateResponse
+      RequestValidatorId: !Ref APIRequestValidator
+      RequestParameters:
+        method.request.path.project: integration.request.path.project
+        method.request.path.repo: integration.request.path.repo
+        method.request.path.id: integration.request.path.id
+
+
+  APIMethodProjectRepoInfoLfsLocksVerifyPost:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - StatusCode: "200"
+        PassthroughBehavior: NEVER
+        RequestParameters:
+          integration.request.path.project: method.request.path.project
+          integration.request.path.repo: method.request.path.repo
+        RequestTemplates:
+          application/vnd.git-lfs+json: ""
+        Type: AWS
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaProjectRepoInfoLfsLocksVerifyPost.Arn}/invocations
+      MethodResponses:
+        - ResponseModels: 
+            application/vnd.git-lfs+json: !Ref APIModelLockVerifyResponse
+          # ResponseParameters: 
+          #   Key: Value
+          StatusCode: "200"
+      ResourceId: !GetAtt APIResourceProjectRepoInfoLfsLocksVerify.ResourceId
+      RestApiId: !Ref API
+      # TODO: I couldn't find a schema in the LFS API code, we may need to write our own from documentation
+      # RequestModels:
+      #   application/vnd.git-lfs+json: !Ref DoesNotExistYet
+      RequestParameters:
+        method.request.path.project: integration.request.path.project
+        method.request.path.repo: integration.request.path.repo
+
+
+  APIMethodProjectRepoInfoLfsObjectsBatchPost:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - StatusCode: "200"
+        PassthroughBehavior: NEVER
+        RequestParameters:
+          integration.request.path.project: method.request.path.project
+          integration.request.path.repo: method.request.path.repo
+        RequestTemplates:
+          application/vnd.git-lfs+json: ""
+        Type: AWS
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaProjectRepoInfoLfsObjectsBatchPost.Arn}/invocations
+      MethodResponses:
+        - ResponseModels:
+            application/vnd.git-lfs+json: !Ref APIModelBatchResponse
+          # ResponseParameters: 
+          #   Key: Value
+          StatusCode: "200"
+      ResourceId: !GetAtt APIResourceProjectRepoInfoLfsObjectsBatch.ResourceId
+      RestApiId: !Ref API
+      RequestModels:
+        application/vnd.git-lfs+json: !Ref APIModelBatchRequest
+      RequestParameters:
+        method.request.path.project: integration.request.path.project
+        method.request.path.repo: integration.request.path.repo
+      RequestValidatorId: !Ref APIRequestValidator
+
+
+  APIRequestValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      Name: API Request Validator
+      RestApiId: !Ref API
+      ValidateRequestBody: true
+      ValidateRequestParameters: true
+
+
+  # APIStageDev:
+  #   Type: AWS::ApiGateway::StageAPIModelBatchRequest
+  #   Properties:
+  #     StageName: dev
+  #     Description: Dev Stage
+  #     RestApiId: !Ref API
+  #     DeploymentId: !Ref APIDeployment
+
+
+  # APIDeployment:
+  #   DependsOn: 
+  #     - APIMethodProjectRepoInfoLfsLocksGet
+  #     - APIMethodProjectRepoInfoLfsLocksPost
+  #     - APIMethodProjectRepoInfoLfsLocksIdUnlockPost
+  #     - APIMethodProjectRepoInfoLfsLocksVerifyPost
+  #     - APIMethodProjectRepoInfoLfsObjectsBatchPost
+  #   Type: AWS::ApiGateway::Deployment
+  #   Properties:
+  #     RestApiId: !Ref API
+  #     Description: dev
+  #     # StageName: !Ref APIStageDev
