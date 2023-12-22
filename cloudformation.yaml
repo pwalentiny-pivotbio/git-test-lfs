@@ -720,7 +720,7 @@ Resources:
       ResourceId: !GetAtt APIResourceProjectRepoInfoLfsLocksIdUnlock.ResourceId
       RestApiId: !Ref API
       RequestModels:
-        application/vnd.git-lfs+json: !Ref APIModelLockCreateResponse
+        application/vnd.git-lfs+json: !Ref APIModelLockDeleteRequest
       RequestValidatorId: !Ref APIRequestValidator
       RequestParameters:
         method.request.path.project: integration.request.path.project
