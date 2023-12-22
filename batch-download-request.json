@@ -1,10 +1,10 @@
 {
-    "operation": "download",
-    "transfers": [ "basic" ],
-    "objects": [
-      {
-        "oid": "12345678",
-        "size": 123
-      }
-    ]
-  }
+  "operation": "download",
+  "transfers": [ "basic" ],
+  "objects": [
+    {
+      "oid": "12345678",
+      "size": 123
+    }
+  ]
+}
