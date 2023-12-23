@@ -7,6 +7,8 @@
     * ~~Solve the missing authentication token problem~~
     * No errors, but no files were uploaded either.  Return a valid response to get an actual upload.
 * ~~Flush out the build and deploy scripts so I can separate out python scripts from cloudformation.~~
+* ~~Create an S3 bucket to store objects~~
+* Make use of ${AWS::StackName} so more than one environment can be deployed per account
 * Test the git CLI against the API for pulling objects, to see what breaks
 * Find or write a schema for APIMethodProjectRepoInfoLfsLocksVerifyPost's request model.
 * Consider separating out APILambdaIAMRole into separate roles for each lambda and/or get more specific with the log groups they can write to.

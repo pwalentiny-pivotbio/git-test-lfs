@@ -787,6 +787,26 @@ Resources:
       ValidateRequestBody: true
       ValidateRequestParameters: true
 
+  
+  S3ObjectStore:
+    Type: AWS::S3::Bucket
+    Properties:
+      # AccelerateConfiguration: 
+      #   AccelerateConfiguration
+      # AccessControl: String
+      # AnalyticsConfigurations: 
+      #   - AnalyticsConfiguration
+      BucketEncryption: 
+          ServerSideEncryptionConfiguration: 
+            - 
+              # TODO Consider a bucket key
+              # BucketKeyEnabled: Boolean
+              ServerSideEncryptionByDefault: 
+                  SSEAlgorithm: AES256
+      BucketName: git-lfs-api-store-kl32md9
+      VersioningConfiguration: 
+          Status: Enabled
+
 
   # APIStageDev:
   #   Type: AWS::ApiGateway::StageAPIModelBatchRequest
