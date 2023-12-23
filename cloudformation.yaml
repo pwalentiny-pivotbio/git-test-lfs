@@ -34,10 +34,7 @@ Resources:
   APILambdaProjectRepoInfoLfsLocksGet:
     Type: AWS::Lambda::Function
     Properties:
-      Code:
-        ZipFile: |
-          def handler(event,context):
-            return event
+      Code: ./lambda_locks_get.py
       Description: Handler for GET /{project}/{repo}/info/lfs/locks
       FunctionName: git-lfs-api-locks-get
       Handler: index.handler
@@ -49,10 +46,7 @@ Resources:
   APILambdaProjectRepoInfoLfsLocksPost:
     Type: AWS::Lambda::Function
     Properties:
-      Code:
-        ZipFile: |
-          def handler(event,context):
-            return event
+      Code: ./lambda_locks_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/locks/
       FunctionName: git-lfs-api-locks-post
       Handler: index.handler
@@ -64,10 +58,7 @@ Resources:
   APILambdaProjectRepoInfoLfsLocksIdUnlockPost:
     Type: AWS::Lambda::Function
     Properties:
-      Code:
-        ZipFile: |
-          def handler(event,context):
-            return event
+      Code: ./lambda_locks_id_unlock_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/locks/{id}/unlock/
       FunctionName: git-lfs-api-locks-id-unlock-post
       Handler: index.handler
@@ -79,10 +70,7 @@ Resources:
   APILambdaProjectRepoInfoLfsLocksVerifyPost:
     Type: AWS::Lambda::Function
     Properties:
-      Code:
-        ZipFile: |
-          def handler(event,context):
-            return event
+      Code: ./lambda_locks_verify_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/locks/verify/
       FunctionName: git-lfs-api-locks-verify-post
       Handler: index.handler
@@ -94,10 +82,7 @@ Resources:
   APILambdaProjectRepoInfoLfsObjectsBatchPost:
     Type: AWS::Lambda::Function
     Properties:
-      Code:
-        ZipFile: |
-          def handler(event,context):
-            return event
+      Code: ./lambda_objects_batch_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/objects/batch
       FunctionName: git-lfs-api-objects-batch-post
       Handler: index.handler
