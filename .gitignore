@@ -1,5 +1,6 @@
 .apigateway-invoke-url
 .venv
 build
+cloudformation-packaged.yaml
 test-remote
 test-repo

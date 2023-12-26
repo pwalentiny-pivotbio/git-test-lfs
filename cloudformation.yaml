@@ -3,6 +3,30 @@ Description: Git LFS API
 Resources:
 
 
+  APIS3IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - S3:PutObject
+                Effect: Allow
+                Resource:
+                  - !Sub ${S3ObjectStore.Arn}/*
+          PolicyName: s3
+
+
   APILambdaIAMRole:
     Type: AWS::IAM::Role
     Properties:
@@ -37,7 +61,7 @@ Resources:
       Code: ./lambda_locks_get.py
       Description: Handler for GET /{project}/{repo}/info/lfs/locks
       FunctionName: git-lfs-api-locks-get
-      Handler: index.handler
+      Handler: lambda_locks_get.handler
       MemorySize: 128
       Role: !GetAtt APILambdaIAMRole.Arn
       Runtime: python3.12
@@ -49,7 +73,7 @@ Resources:
       Code: ./lambda_locks_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/locks/
       FunctionName: git-lfs-api-locks-post
-      Handler: index.handler
+      Handler: lambda_locks_post.handler
       MemorySize: 128
       Role: !GetAtt APILambdaIAMRole.Arn
       Runtime: python3.12
@@ -61,7 +85,7 @@ Resources:
       Code: ./lambda_locks_id_unlock_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/locks/{id}/unlock/
       FunctionName: git-lfs-api-locks-id-unlock-post
-      Handler: index.handler
+      Handler: lambda_locks_id_unlock_post.handler
       MemorySize: 128
       Role: !GetAtt APILambdaIAMRole.Arn
       Runtime: python3.12
@@ -73,7 +97,7 @@ Resources:
       Code: ./lambda_locks_verify_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/locks/verify/
       FunctionName: git-lfs-api-locks-verify-post
-      Handler: index.handler
+      Handler: lambda_objects_batch_post.handler
       MemorySize: 128
       Role: !GetAtt APILambdaIAMRole.Arn
       Runtime: python3.12
@@ -85,7 +109,7 @@ Resources:
       Code: ./lambda_objects_batch_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/objects/batch
       FunctionName: git-lfs-api-objects-batch-post
-      Handler: index.handler
+      Handler: lambda_objects_batch_post.handler
       MemorySize: 128
       Role: !GetAtt APILambdaIAMRole.Arn
       Runtime: python3.12
@@ -613,6 +637,22 @@ Resources:
       ParentId: !Ref APIResourceProjectRepoInfoLfsObjects
       PathPart: "batch"
       RestApiId: !Ref API
+  
+
+  APIResourceProjectRepoObject:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProjectRepo
+      PathPart: "object"
+      RestApiId: !Ref API
+  
+
+  APIResourceProjectRepoObjectId:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIResourceProjectRepoObject
+      PathPart: "{id}"
+      RestApiId: !Ref API
 
 
   APIMethodProjectRepoInfoLfsLocksGet:
@@ -777,6 +817,40 @@ Resources:
         method.request.path.project: integration.request.path.project
         method.request.path.repo: integration.request.path.repo
       RequestValidatorId: !Ref APIRequestValidator
+
+
+  APIMethodProjectRepoObject:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        IntegrationHttpMethod: PUT
+        IntegrationResponses:
+          - StatusCode: "200"
+        Credentials: !GetAtt APIS3IAMRole.Arn
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.project: method.request.path.project
+          integration.request.path.repo: method.request.path.repo
+          integration.request.path.id: method.request.path.id
+        # RequestTemplates:
+        #   application/vnd.git-lfs+json: ""
+        Type: AWS
+        # Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaProjectRepoObjectIdPost.Arn}/invocations
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:s3:path/${S3ObjectStore}/{project}/{repo}/{id}
+      MethodResponses:
+        - ResponseModels: 
+            application/vnd.git-lfs+json: !Ref APIModelLockListResponse
+          # ResponseParameters: 
+          #   Key: Value
+          StatusCode: "200"
+      ResourceId: !GetAtt APIResourceProjectRepoObjectId.ResourceId
+      RestApiId: !Ref API
+      RequestParameters:
+        method.request.path.project: integration.request.path.project
+        method.request.path.repo: integration.request.path.repo
+        method.request.path.id: integration.request.path.id
 
 
   APIRequestValidator:
