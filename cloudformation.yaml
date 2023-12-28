@@ -58,7 +58,7 @@ Resources:
   APILambdaProjectRepoInfoLfsLocksGet:
     Type: AWS::Lambda::Function
     Properties:
-      Code: ./lambda_locks_get.py
+      Code: ./src/lambda_locks_get.py
       Description: Handler for GET /{project}/{repo}/info/lfs/locks
       FunctionName: git-lfs-api-locks-get
       Handler: lambda_locks_get.handler
@@ -70,7 +70,7 @@ Resources:
   APILambdaProjectRepoInfoLfsLocksPost:
     Type: AWS::Lambda::Function
     Properties:
-      Code: ./lambda_locks_post.py
+      Code: ./src/lambda_locks_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/locks/
       FunctionName: git-lfs-api-locks-post
       Handler: lambda_locks_post.handler
@@ -82,7 +82,7 @@ Resources:
   APILambdaProjectRepoInfoLfsLocksIdUnlockPost:
     Type: AWS::Lambda::Function
     Properties:
-      Code: ./lambda_locks_id_unlock_post.py
+      Code: ./src/lambda_locks_id_unlock_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/locks/{id}/unlock/
       FunctionName: git-lfs-api-locks-id-unlock-post
       Handler: lambda_locks_id_unlock_post.handler
@@ -94,7 +94,7 @@ Resources:
   APILambdaProjectRepoInfoLfsLocksVerifyPost:
     Type: AWS::Lambda::Function
     Properties:
-      Code: ./lambda_locks_verify_post.py
+      Code: ./src/lambda_locks_verify_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/locks/verify/
       FunctionName: git-lfs-api-locks-verify-post
       Handler: lambda_objects_batch_post.handler
@@ -106,13 +106,20 @@ Resources:
   APILambdaProjectRepoInfoLfsObjectsBatchPost:
     Type: AWS::Lambda::Function
     Properties:
-      Code: ./lambda_objects_batch_post.py
+      Code: ./src/lambda_objects_batch_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/objects/batch
       FunctionName: git-lfs-api-objects-batch-post
       Handler: lambda_objects_batch_post.handler
       MemorySize: 128
       Role: !GetAtt APILambdaIAMRole.Arn
       Runtime: python3.12
+
+
+  APIStageAccessLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      # LogGroupName: /aws/lambda/git-lfs-api-locks-get
+      RetentionInDays: 14
 
 
   APILambdaLogGroupProjectRepoInfoLfsLocksGet:
@@ -865,41 +872,68 @@ Resources:
   S3ObjectStore:
     Type: AWS::S3::Bucket
     Properties:
-      # AccelerateConfiguration: 
-      #   AccelerateConfiguration
-      # AccessControl: String
-      # AnalyticsConfigurations: 
-      #   - AnalyticsConfiguration
       BucketEncryption: 
           ServerSideEncryptionConfiguration: 
-            - 
-              # TODO Consider a bucket key
-              # BucketKeyEnabled: Boolean
+            - BucketKeyEnabled: True
               ServerSideEncryptionByDefault: 
-                  SSEAlgorithm: AES256
-      BucketName: git-lfs-api-store-kl32md9
+                SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref S3ObjectStoreAccessLogs
+      VersioningConfiguration: 
+        Status: Enabled
+
+  
+  S3ObjectStoreAccessLogs:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption: 
+          ServerSideEncryptionConfiguration: 
+            - BucketKeyEnabled: True
+              ServerSideEncryptionByDefault: 
+                SSEAlgorithm: AES256
       VersioningConfiguration: 
           Status: Enabled
 
 
-  # APIStageDev:
-  #   Type: AWS::ApiGateway::StageAPIModelBatchRequest
-  #   Properties:
-  #     StageName: dev
-  #     Description: Dev Stage
-  #     RestApiId: !Ref API
-  #     DeploymentId: !Ref APIDeployment
+  APIStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      AccessLogSetting:
+        DestinationArn: !GetAtt APIStageAccessLogs.Arn
+        Format: '{ "requestId":"$context.requestId",  "extendedRequestId":"$context.extendedRequestId",  "ip": "$context.identity.sourceIp", "caller":"$context.identity.caller", "user":"$context.identity.user", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod", "resourcePath":"$context.resourcePath", "status":"$context.status", "protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+      MethodSettings:
+        - HttpMethod: '*'
+          LoggingLevel: INFO
+          MetricsEnabled: False
+          ResourcePath: /*
+      StageName: dev
+      Description: Dev Stage
+      RestApiId: !Ref API
+      DeploymentId: !Ref APIDeployment
+      Variables:
+        objectstore: !Ref S3ObjectStore
 
 
-  # APIDeployment:
-  #   DependsOn: 
-  #     - APIMethodProjectRepoInfoLfsLocksGet
-  #     - APIMethodProjectRepoInfoLfsLocksPost
-  #     - APIMethodProjectRepoInfoLfsLocksIdUnlockPost
-  #     - APIMethodProjectRepoInfoLfsLocksVerifyPost
-  #     - APIMethodProjectRepoInfoLfsObjectsBatchPost
-  #   Type: AWS::ApiGateway::Deployment
-  #   Properties:
-  #     RestApiId: !Ref API
-  #     Description: dev
-  #     # StageName: !Ref APIStageDev
+  APIDeployment:
+    DependsOn: 
+      - APIMethodProjectRepoInfoLfsLocksGet
+      - APIMethodProjectRepoInfoLfsLocksPost
+      - APIMethodProjectRepoInfoLfsLocksIdUnlockPost
+      - APIMethodProjectRepoInfoLfsLocksVerifyPost
+      - APIMethodProjectRepoInfoLfsObjectsBatchPost
+      - APIMethodProjectRepoObject
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref API
+      Description: dev
+
+
+Outputs:
+  APIStageURL:
+    Description: The Rest API's https endpoint
+    Value: !Sub https://${API}.execute-api.${AWS::Region}.amazonaws.com/${APIStage}
+
+
+  S3ObjectStore:
+    Description: The S3 bucket where the objects are stored
+    Value: !Ref S3ObjectStore

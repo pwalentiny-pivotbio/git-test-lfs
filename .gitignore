@@ -2,5 +2,6 @@
 .venv
 build
 cloudformation-packaged.yaml
+config.ini
 test-remote
 test-repo
