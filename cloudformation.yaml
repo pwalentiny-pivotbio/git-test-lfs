@@ -52,6 +52,11 @@ Resources:
                   # TODO Create separate roles for each lambda
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/git-lfs-api-locks-get:*
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*
+              - Action:
+                  - S3:PutObject
+                Effect: Allow
+                Resource:
+                  - !Sub ${S3ObjectStore.Arn}/*
           PolicyName: lambda
 
 
@@ -97,7 +102,7 @@ Resources:
       Code: ./src/lambda_locks_verify_post.py
       Description: Handler for POST /{project}/{repo}/info/lfs/locks/verify/
       FunctionName: git-lfs-api-locks-verify-post
-      Handler: lambda_objects_batch_post.handler
+      Handler: lambda_locks_verify_post.handler
       MemorySize: 128
       Role: !GetAtt APILambdaIAMRole.Arn
       Runtime: python3.12
@@ -118,7 +123,6 @@ Resources:
   APIStageAccessLogs:
     Type: AWS::Logs::LogGroup
     Properties:
-      # LogGroupName: /aws/lambda/git-lfs-api-locks-get
       RetentionInDays: 14
 
 
@@ -830,7 +834,7 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
-      HttpMethod: POST
+      HttpMethod: PUT
       Integration:
         IntegrationHttpMethod: PUT
         IntegrationResponses:

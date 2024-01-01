@@ -1,5 +1,8 @@
 .apigateway-invoke-url
+.pytest_cache
 .venv
+.vscode
+__pycache__
 build
 cloudformation-packaged.yaml
 config.ini

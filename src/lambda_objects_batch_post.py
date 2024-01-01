@@ -1,4 +1,9 @@
+import boto3
+
+s3 = boto3.client('s3')
+
 def handler(event: dict, context):
+    print(event)
     # TODO Validate that event['transfers'] actually has 'basic' in the list.
     response = {
         'transfer': 'basic',
@@ -7,8 +12,17 @@ def handler(event: dict, context):
     }
 
     for object in event['objects']:
-        # generate an presigned URL
-        url = f'https://ffylsca8bj.execute-api.us-east-1.amazonaws.com/dev/pwalentiny/repo.git/object/{object["oid"]}'
+        presigned_url = s3.generate_presigned_url(
+            'put_object',
+            Params={
+                'Bucket': 'git-lfs-api-s3objectstore-tpdyb5s7c34i',
+                'Key': f"pwalentiny/repo.git/{object['oid']}",
+                'ContentType': 'application/octet-stream'
+            },
+            ExpiresIn=3600,
+
+        )
+        url = presigned_url
         response['objects'].append(
             {
                 'oid': object['oid'],
@@ -25,6 +39,7 @@ def handler(event: dict, context):
         )
 
     return response
+
     # return {
     #     "transfer": "basic",
     #     "objects": [

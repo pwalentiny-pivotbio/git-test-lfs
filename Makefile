@@ -1,7 +1,7 @@
 ARTIFACT_BUCKET := git-lfs-artifacts-3ja5fr4
 CF_TEMPLATE := cloudformation.yaml
 CF_TEMPLATE_PACKAGED := cloudformation-packaged.yaml
-LAMBDA_FUNCTIONS := $(wildcard lambda_*.py)
+LAMBDA_FUNCTIONS := $(wildcard src/lambda_*.py)
 STACK_NAME := git-lfs-api
 
 .PHONY: all
@@ -27,3 +27,7 @@ $(CF_TEMPLATE_PACKAGED): $(CF_TEMPLATE) $(LAMBDA_FUNCTIONS)
 delete:
 	@aws cloudformation delete-stack --stack-name $(STACK_NAME)
 	@aws cloudformation wait stack-delete-complete --stack-name $(STACK_NAME)
+
+.PHONY: test
+test:
+	@cd tests && python -m unittest
