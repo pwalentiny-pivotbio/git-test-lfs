@@ -1,6 +1,0 @@
-{
-    "force": true,
-    "ref": {
-        "name": "refs/heads/my-feature"
-    }
-}

@@ -31,3 +31,7 @@ delete:
 .PHONY: test
 test:
 	@cd tests && python -m unittest
+
+.PHONY: clean
+clean:
+	@rm -rf cloudformation-packaged.yaml glautils/build tests/__pycache__ tests/test-remote tests/test-repo 

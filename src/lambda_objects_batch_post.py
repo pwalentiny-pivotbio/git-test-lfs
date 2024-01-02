@@ -2,27 +2,44 @@ import boto3
 
 s3 = boto3.client('s3')
 
-def handler(event: dict, context):
+
+def handler(event, context):
     print(event)
-    # TODO Validate that event['transfers'] actually has 'basic' in the list.
+
     response = {
         'transfer': 'basic',
         'objects': [],
         'hash_algo': event.get('hash_algo', 'sha256')
     }
 
+    if event['operation'] == 'upload':
+        client_method = 'put_object'
+    
+    elif event['operation'] == 'download':
+        client_method = 'get_object'
+    
+    else:
+        raise Exception("event['operation'] needs to be either upload or download.")
+    
     for object in event['objects']:
-        presigned_url = s3.generate_presigned_url(
-            'put_object',
-            Params={
-                'Bucket': 'git-lfs-api-s3objectstore-tpdyb5s7c34i',
-                'Key': f"pwalentiny/repo.git/{object['oid']}",
-                'ContentType': 'application/octet-stream'
-            },
-            ExpiresIn=3600,
+        Params = {
+            'Bucket': 'git-lfs-api-s3objectstore-tpdyb5s7c34i',
+            'Key': f"pwalentiny/repo.git/{object['oid']}"
+        }
 
+        # Git LFS includes a Content-Type header when it uses the basic
+        # trasfer protocol for uplaod operations.  S3 presigned urls consider
+        # this header in the signature so we need to include it in the
+        # parameters.
+        if event['operation'] == 'upload':
+            Params['ContentType'] = 'application/octet-stream'
+
+        url = s3.generate_presigned_url(
+            client_method,
+            Params=Params,
+            ExpiresIn=3600
         )
-        url = presigned_url
+
         response['objects'].append(
             {
                 'oid': object['oid'],
@@ -32,31 +49,10 @@ def handler(event: dict, context):
                     event['operation']: {
                         'href': url,
                         # 'header': {},
-                        # 'expires_at': ''
+                        # 'expires_at': '2016-11-10T15:29:07Z'
                     }
                 }
             }
         )
 
     return response
-
-    # return {
-    #     "transfer": "basic",
-    #     "objects": [
-    #         {
-    #         "oid": "1111111",
-    #         "size": 123,
-    #         "authenticated": True,
-    #         "actions": {
-    #             "download": {
-    #             "href": "https://some-download.com",
-    #             "header": {
-    #                 "Key": "value"
-    #             },
-    #             "expires_at": "2016-11-10T15:29:07Z"
-    #             }
-    #         }
-    #         }
-    #     ],
-    #     "hash_algo": "sha256"
-    #     }

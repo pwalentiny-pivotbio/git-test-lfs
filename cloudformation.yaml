@@ -3,30 +3,6 @@ Description: Git LFS API
 Resources:
 
 
-  APIS3IAMRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Action:
-              - sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service:
-                - apigateway.amazonaws.com
-      Policies:
-        - PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Action:
-                  - S3:PutObject
-                Effect: Allow
-                Resource:
-                  - !Sub ${S3ObjectStore.Arn}/*
-          PolicyName: s3
-
-
   APILambdaIAMRole:
     Type: AWS::IAM::Role
     Properties:
@@ -54,6 +30,7 @@ Resources:
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*
               - Action:
                   - S3:PutObject
+                  - S3:GetObject
                 Effect: Allow
                 Resource:
                   - !Sub ${S3ObjectStore.Arn}/*
@@ -648,22 +625,6 @@ Resources:
       ParentId: !Ref APIResourceProjectRepoInfoLfsObjects
       PathPart: "batch"
       RestApiId: !Ref API
-  
-
-  APIResourceProjectRepoObject:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Ref APIResourceProjectRepo
-      PathPart: "object"
-      RestApiId: !Ref API
-  
-
-  APIResourceProjectRepoObjectId:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Ref APIResourceProjectRepoObject
-      PathPart: "{id}"
-      RestApiId: !Ref API
 
 
   APIMethodProjectRepoInfoLfsLocksGet:
@@ -830,40 +791,6 @@ Resources:
       RequestValidatorId: !Ref APIRequestValidator
 
 
-  APIMethodProjectRepoObject:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      AuthorizationType: NONE
-      HttpMethod: PUT
-      Integration:
-        IntegrationHttpMethod: PUT
-        IntegrationResponses:
-          - StatusCode: "200"
-        Credentials: !GetAtt APIS3IAMRole.Arn
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestParameters:
-          integration.request.path.project: method.request.path.project
-          integration.request.path.repo: method.request.path.repo
-          integration.request.path.id: method.request.path.id
-        # RequestTemplates:
-        #   application/vnd.git-lfs+json: ""
-        Type: AWS
-        # Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaProjectRepoObjectIdPost.Arn}/invocations
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:s3:path/${S3ObjectStore}/{project}/{repo}/{id}
-      MethodResponses:
-        - ResponseModels: 
-            application/vnd.git-lfs+json: !Ref APIModelLockListResponse
-          # ResponseParameters: 
-          #   Key: Value
-          StatusCode: "200"
-      ResourceId: !GetAtt APIResourceProjectRepoObjectId.ResourceId
-      RestApiId: !Ref API
-      RequestParameters:
-        method.request.path.project: integration.request.path.project
-        method.request.path.repo: integration.request.path.repo
-        method.request.path.id: integration.request.path.id
-
-
   APIRequestValidator:
     Type: AWS::ApiGateway::RequestValidator
     Properties:
@@ -925,7 +852,6 @@ Resources:
       - APIMethodProjectRepoInfoLfsLocksIdUnlockPost
       - APIMethodProjectRepoInfoLfsLocksVerifyPost
       - APIMethodProjectRepoInfoLfsObjectsBatchPost
-      - APIMethodProjectRepoObject
     Type: AWS::ApiGateway::Deployment
     Properties:
       RestApiId: !Ref API
