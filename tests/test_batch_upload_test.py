@@ -60,9 +60,16 @@ class TestBatch(unittest.TestCase):
 
         self.assertEqual(hash.hexdigest(), h2.hexdigest())
 
-    @unittest.skip('Not implemented yet')
     def test_batch2_download(self):
-        raise NotImplementedError
+        run_process('git', 'clone', './test-remote', 'test-repo2', cwd='.')
+        hash_results = []
+        for repo in ['test-repo', 'test-repo2']:
+            with open(os.path.join(repo, 'binaryFile'), 'rb') as fp:
+                h = hashlib.new('sha256')
+                h.update(fp.read())
+                hash_results.append(h.hexdigest())
+        
+        self.assertEqual(hash_results[0], hash_results[1])
 
 
 def run_process(*cmd, **addl_args):
