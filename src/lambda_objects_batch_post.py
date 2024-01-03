@@ -18,13 +18,14 @@ def handler(event, context):
 
     if event['operation'] == 'upload':
         client_method = 'put_object'
-    
+
     elif event['operation'] == 'download':
         client_method = 'get_object'
-    
+
     else:
-        raise Exception("event['operation'] needs to be either 'upload' or 'download'.")
-    
+        raise Exception(
+            "event['operation'] needs to be either 'upload' or 'download'.")
+
     for object in event['objects']:
         Params = {
             'Bucket': bucket,

@@ -7,11 +7,8 @@ import shutil
 import subprocess
 import unittest
 
-
 config = configparser.ConfigParser()
 config.read("../config.ini")
-
-
 
 
 class TestBatch(unittest.TestCase):
@@ -53,8 +50,8 @@ class TestBatch(unittest.TestCase):
         s3 = boto3.client('s3')
         print(f'project/repo.git/{hash.hexdigest()}')
         response = s3.get_object(
-            Bucket = config['stack']['s3objectstore'],
-            Key = f'project/repo.git/{hash.hexdigest()}',
+            Bucket=config['stack']['s3objectstore'],
+            Key=f'project/repo.git/{hash.hexdigest()}',
         )
         h2 = hashlib.new('sha256')
         h2.update(response['Body'].read())
@@ -69,7 +66,7 @@ class TestBatch(unittest.TestCase):
                 h = hashlib.new('sha256')
                 h.update(fp.read())
                 hash_results.append(h.hexdigest())
-        
+
         self.assertEqual(hash_results[0], hash_results[1])
 
 
