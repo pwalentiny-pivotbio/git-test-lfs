@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import unittest
 
+s3 = boto3.client('s3')
 config = configparser.ConfigParser()
 config.read("../config.ini")
 
@@ -29,45 +30,52 @@ class TestBatch(unittest.TestCase):
         run_process('git', 'add', '.')
         run_process('git', 'commit', '-m', 'Initial commit')
         run_process('git', 'push', '--set-upstream', 'origin', 'main')
+        shutil.rmtree('test-repo')
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree('test-repo')
-        shutil.rmtree('test-repo2')
         shutil.rmtree('test-remote')
+
+    def setUp(self):
+        run_process('git', 'clone', './test-remote', 'test-repo', cwd='.')
+
+    def tearDown(self):
+        shutil.rmtree('test-repo')
 
     def test_batch1_upload(self):
         hash = hashlib.new('sha256')
         with open(os.path.join('test-repo', 'binaryFile'), 'wb') as fp:
-            binaryData = bytes([random.randint(0, 127) for n in range(1024)])
-            hash.update(binaryData)
-            fp.write(binaryData)
+            fp.write(_file_data)
 
         run_process('git', 'add', 'binaryFile')
         run_process(
             'git', 'commit', '-m', 'Adding binary file for a test upload')
         run_process('git', 'push', timeout=10)
-        s3 = boto3.client('s3')
-        print(f'project/repo.git/{hash.hexdigest()}')
+        key = f'project/repo.git/{_file_data_hash}'
         response = s3.get_object(
             Bucket=config['stack']['s3objectstore'],
-            Key=f'project/repo.git/{hash.hexdigest()}',
+            Key=key,
         )
-        h2 = hashlib.new('sha256')
-        h2.update(response['Body'].read())
+        s3_file_hash = hashlib.new('sha256')
+        s3_file_hash.update(response['Body'].read())
 
-        self.assertEqual(hash.hexdigest(), h2.hexdigest())
+        self.assertEqual(_file_data_hash, s3_file_hash.hexdigest())
 
     def test_batch2_download(self):
-        run_process('git', 'clone', './test-remote', 'test-repo2', cwd='.')
-        hash_results = []
-        for repo in ['test-repo', 'test-repo2']:
-            with open(os.path.join(repo, 'binaryFile'), 'rb') as fp:
-                h = hashlib.new('sha256')
-                h.update(fp.read())
-                hash_results.append(h.hexdigest())
+        h = hashlib.new('sha256')
+        with open(os.path.join('test-repo', 'binaryFile'), 'rb') as fp:
+            h.update(fp.read())
 
-        self.assertEqual(hash_results[0], hash_results[1])
+        self.assertEqual(h.hexdigest(), _file_data_hash)
+
+
+def generate_file():
+    file_data = bytes(
+        [random.randint(0, 127) for n in range(1024)])
+    hash = hashlib.new('sha256')
+    hash.update(file_data)
+    file_data_hash = hash.hexdigest()
+    return file_data, file_data_hash
 
 
 def run_process(*cmd, **addl_args):
@@ -80,5 +88,6 @@ def run_process(*cmd, **addl_args):
     return subprocess.run(cmd, **(kwargs | addl_args))
 
 
+_file_data, _file_data_hash = generate_file()
 if __name__ == '__main__':
     unittest.main()
