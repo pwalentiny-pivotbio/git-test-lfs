@@ -772,7 +772,13 @@ Resources:
           integration.request.path.project: method.request.path.project
           integration.request.path.repo: method.request.path.repo
         RequestTemplates:
-          application/vnd.git-lfs+json: ""
+          application/vnd.git-lfs+json: !Sub |
+            {
+                "bucket": "${S3ObjectStore}",
+                "project": "$input.params('project')",
+                "repo": "$input.params('repo')",
+                "request": $input.json('$')
+            }
         Type: AWS
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${APILambdaProjectRepoInfoLfsObjectsBatchPost.Arn}/invocations
       MethodResponses:

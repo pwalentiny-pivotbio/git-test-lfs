@@ -5,6 +5,10 @@ s3 = boto3.client('s3')
 
 def handler(event, context):
     print(event)
+    bucket = event['bucket']
+    project = event['project']
+    repo = event['repo']
+    event = event['request']
 
     response = {
         'transfer': 'basic',
@@ -19,12 +23,12 @@ def handler(event, context):
         client_method = 'get_object'
     
     else:
-        raise Exception("event['operation'] needs to be either upload or download.")
+        raise Exception("event['operation'] needs to be either 'upload' or 'download'.")
     
     for object in event['objects']:
         Params = {
-            'Bucket': 'git-lfs-api-s3objectstore-tpdyb5s7c34i',
-            'Key': f"pwalentiny/repo.git/{object['oid']}"
+            'Bucket': bucket,
+            'Key': f"{project}/{repo}/{object['oid']}"
         }
 
         # Git LFS includes a Content-Type header when it uses the basic

@@ -36,6 +36,7 @@ class TestBatch(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree('test-repo')
+        shutil.rmtree('test-repo2')
         shutil.rmtree('test-remote')
 
     def test_batch1_upload(self):
@@ -50,10 +51,10 @@ class TestBatch(unittest.TestCase):
             'git', 'commit', '-m', 'Adding binary file for a test upload')
         run_process('git', 'push', timeout=10)
         s3 = boto3.client('s3')
-        print(f'pwalentiny/repo.git/{hash.hexdigest()}')
+        print(f'project/repo.git/{hash.hexdigest()}')
         response = s3.get_object(
             Bucket = config['stack']['s3objectstore'],
-            Key = f'pwalentiny/repo.git/{hash.hexdigest()}',
+            Key = f'project/repo.git/{hash.hexdigest()}',
         )
         h2 = hashlib.new('sha256')
         h2.update(response['Body'].read())
