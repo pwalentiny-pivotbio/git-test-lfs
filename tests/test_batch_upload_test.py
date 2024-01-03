@@ -22,7 +22,7 @@ class TestBatch(unittest.TestCase):
         run_process('git', 'init')
         run_process('git', 'remote', 'add', 'origin', '../test-remote')
         run_process('git', 'lfs', 'install')
-        run_process('git', 'lfs', 'track', 'binaryFile')
+        run_process('git', 'lfs', 'track', '*.lfs')
 
         url = f"{config['stack']['apistageurl']}/project/repo.git/info/lfs"
         run_process(
@@ -44,10 +44,10 @@ class TestBatch(unittest.TestCase):
 
     def test_batch1_upload(self):
         hash = hashlib.new('sha256')
-        with open(os.path.join('test-repo', 'binaryFile'), 'wb') as fp:
+        with open(os.path.join('test-repo', 'file1.lfs'), 'wb') as fp:
             fp.write(_file_data)
 
-        run_process('git', 'add', 'binaryFile')
+        run_process('git', 'add', 'file1.lfs')
         run_process(
             'git', 'commit', '-m', 'Adding binary file for a test upload')
         run_process('git', 'push', timeout=10)
@@ -63,10 +63,19 @@ class TestBatch(unittest.TestCase):
 
     def test_batch2_download(self):
         h = hashlib.new('sha256')
-        with open(os.path.join('test-repo', 'binaryFile'), 'rb') as fp:
+        with open(os.path.join('test-repo', 'file1.lfs'), 'rb') as fp:
             h.update(fp.read())
 
         self.assertEqual(h.hexdigest(), _file_data_hash)
+
+    def test_batch3_upload_duplicate(self):
+        with open(os.path.join('test-repo', 'file2.lfs'), 'wb') as fp:
+            fp.write(_file_data)
+
+        run_process('git', 'add', 'file2.lfs')
+        run_process(
+            'git', 'commit', '-m', 'Adding a duplicate file')
+        run_process('git', 'push', timeout=10)
 
 
 def generate_file():
