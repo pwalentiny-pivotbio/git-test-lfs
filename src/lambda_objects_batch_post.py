@@ -1,4 +1,5 @@
 import boto3
+import botocore.exceptions
 
 s3 = boto3.client('s3')
 
@@ -28,16 +29,20 @@ def handler(event, context):
             "event['operation'] needs to be either 'upload' or 'download'.")
 
     for _object in objects:
+        key = f"{project}/{repo}/{_object['oid']}"
         Params = {
             'Bucket': bucket,
-            'Key': f"{project}/{repo}/{_object['oid']}"
+            'Key': key
         }
 
-        # Git LFS includes a Content-Type header when it uses the basic
-        # trasfer protocol for uplaod operations.  S3 presigned urls consider
-        # this header in the signature so we need to include it in the
-        # parameters.
         if operation == 'upload':
+            if _object_exists(bucket, key):
+                continue
+            
+            # Git LFS includes a Content-Type header when it uses the basic
+            # trasfer protocol for uplaod operations.  S3 presigned urls consider
+            # this header in the signature so we need to include it in the
+            # parameters.
             Params['ContentType'] = 'application/octet-stream'
 
         url = s3.generate_presigned_url(
@@ -55,10 +60,24 @@ def handler(event, context):
                     operation: {
                         'href': url,
                         # 'header': {},
-                        # 'expires_at': '2016-11-10T15:29:07Z'
+                        # 'expires_at': '2016-11-10T15:29:07Z',
+                        'expires_in': 3600
                     }
                 }
             }
         )
 
     return response
+
+
+def _object_exists(bucket, key):
+    try:
+        s3.head_object(Bucket=bucket, Key=key)
+        return True
+
+    except botocore.exceptions.ClientError as e:
+        if 'Error' in e.response and 'Code' in e.response['Error']:
+            if e.response['Error']['Code'] != '404':
+                raise
+
+            return False

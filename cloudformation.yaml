@@ -31,9 +31,11 @@ Resources:
               - Action:
                   - S3:PutObject
                   - S3:GetObject
+                  - S3:ListBucket
                 Effect: Allow
                 Resource:
                   - !Sub ${S3ObjectStore.Arn}/*
+                  - !GetAtt S3ObjectStore.Arn
           PolicyName: lambda
 
 
