@@ -36,13 +36,10 @@ def handler(event, context):
         }
 
         if operation == 'upload':
-            if _object_exists(bucket, key):
-                continue
-            
             # Git LFS includes a Content-Type header when it uses the basic
-            # trasfer protocol for uplaod operations.  S3 presigned urls consider
-            # this header in the signature so we need to include it in the
-            # parameters.
+            # trasfer protocol for uplaod operations.  S3 presigned urls
+            # consider this header in the signature so we need to include
+            # it in the parameters.
             Params['ContentType'] = 'application/octet-stream'
 
         url = s3.generate_presigned_url(
@@ -51,20 +48,24 @@ def handler(event, context):
             ExpiresIn=3600
         )
 
-        response['objects'].append(
-            {
-                'oid': _object['oid'],
-                'size': _object['size'],
-                'authenticated': True,
-                'actions': {
-                    operation: {
-                        'href': url,
-                        # 'header': {},
-                        # 'expires_at': '2016-11-10T15:29:07Z',
-                        'expires_in': 3600
-                    }
+        response_object = {
+            'oid': _object['oid'],
+            'size': _object['size'],
+            'authenticated': True
+        }
+
+        if operation == 'download' or not _object_exists(bucket, key):
+            response_object['actions'] = {
+                operation: {
+                    'href': url,
+                    # 'header': {},
+                    # 'expires_at': '2016-11-10T15:29:07Z',
+                    'expires_in': 3600
                 }
             }
+
+        response['objects'].append(
+            response_object
         )
 
     return response
