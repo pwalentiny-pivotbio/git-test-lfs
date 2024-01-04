@@ -1,3 +1,4 @@
+''' API Gateway Integration that implements the LFS Batch API '''
 import boto3
 import botocore.exceptions
 
@@ -5,6 +6,18 @@ s3 = boto3.client('s3')
 
 
 def handler(event, context):
+    ''' API Gateway Integration that implements the LFS Batch API
+
+    Read more here:
+        https://github.com/git-lfs/git-lfs/blob/main/docs/api/batch.md
+
+    :param event: The a dictionary representation of the JSON sent as part of
+        the LFS Batch API request.
+    :type event: dict
+    :param context: The AWS Lambda context
+        https://docs.aws.amazon.com/lambda/latest/dg/python-context.html
+    :type context: LambdaContext
+    '''
     print(event)
     bucket = event['bucket']
     project = event['project']
@@ -18,21 +31,17 @@ def handler(event, context):
         'hash_algo': event['request'].get('hash_algo', 'sha256')
     }
 
-    if operation == 'upload':
-        client_method = 'put_object'
-
-    elif operation == 'download':
-        client_method = 'get_object'
-
-    else:
-        raise Exception(
-            "event['operation'] needs to be either 'upload' or 'download'.")
-
     for _object in objects:
         key = f"{project}/{repo}/{_object['oid']}"
         Params = {
             'Bucket': bucket,
             'Key': key
+        }
+
+        response_object = {
+            'oid': _object['oid'],
+            'size': _object['size'],
+            'authenticated': True
         }
 
         if operation == 'upload':
@@ -41,20 +50,26 @@ def handler(event, context):
             # consider this header in the signature so we need to include
             # it in the parameters.
             Params['ContentType'] = 'application/octet-stream'
+            client_method = 'put_object'
 
-        url = s3.generate_presigned_url(
-            client_method,
-            Params=Params,
-            ExpiresIn=3600
-        )
+        elif operation == 'download':
+            client_method = 'get_object'
 
-        response_object = {
-            'oid': _object['oid'],
-            'size': _object['size'],
-            'authenticated': True
-        }
+        else:
+            raise Exception(
+                "event['operation'] needs to be either 'upload' or 'download'."
+                )
 
+        # The LFS API spec requires a download action in response to a
+        # download request.  If this isn't a download request (i.e. is an
+        # upload request) than an upload action is only necessary if
+        # the object doesn't already exist.
         if operation == 'download' or not _object_exists(bucket, key):
+            url = s3.generate_presigned_url(
+                client_method,
+                Params=Params,
+                ExpiresIn=3600
+            )
             response_object['actions'] = {
                 operation: {
                     'href': url,
@@ -72,6 +87,16 @@ def handler(event, context):
 
 
 def _object_exists(bucket, key):
+    ''' Check if this bucket/key combo exists on the datastore
+
+        :param bucket: The name of the S3 bucket
+        :type bucket: str
+        :param key: The key we're testing
+        :type key: str
+        :returns: True if the object exists, False if the object doesn't
+            exist.
+        :rtype: boolean
+    '''
     try:
         s3.head_object(Bucket=bucket, Key=key)
         return True

@@ -1,12 +1,13 @@
 * Fix S3 object store bucket logging
-* Implement lock API
 * Implement verify callback
 * Validate the hash of newly created objects
+* Implement lock API
 * Find or write a schema for APIMethodProjectRepoInfoLfsLocksVerifyPost's request model.
 * Consider separating out APILambdaIAMRole into separate roles for each lambda and/or get more specific with the log groups they can write to.
 * Make use of ${AWS::StackName} so more than one environment can be deployed per account
 * Fix tests so we can run it from any directory (or from vscode)
 * See if we need to sanitize inputs for APIMethodProjectRepoInfoLfsObjectsBatchPost's RequestTemplates
+* In lambda_objects_batch_post._object_exists, handle the missing bucket exception sanely
 * Figure out authentication for the API
     * Can we use cognito (maybe connected to GitHub oauth like circleci)?
     * Maybe we just start with apikeys in the basic auth header via RequestTemplates or something.
