@@ -1,4 +1,3 @@
-* Fix S3 object store bucket logging
 * Implement verify callback
 * Validate the hash of newly created objects
 * Implement lock API
@@ -23,6 +22,7 @@
     * Quickstart guide
     * Deployment video
     * Documentation
+* ~~Fix S3 object store bucket logging~~
 * ~~Re-write into cloudformation for easy deployment~~
 * ~~Create test requests for each endpoint~~
 * ~~Test each endpoint with the test request just to see that we are reaching the lambda backend~~

@@ -834,6 +834,28 @@ Resources:
           Status: Enabled
 
 
+  S3ObjectStoreAccessLogsPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3ObjectStoreAccessLogs
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: S3ServerAccessLogsPolicy
+            Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+            Action:
+              - s3:PutObject
+            Resource: !Sub arn:aws:s3:::${S3ObjectStoreAccessLogs}/*
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub arn:aws:s3:::${S3ObjectStore}
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId					
+
+
+
   APIStage:
     Type: AWS::ApiGateway::Stage
     Properties:
