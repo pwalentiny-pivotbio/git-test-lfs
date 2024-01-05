@@ -1,5 +1,3 @@
-* Implement verify callback
-* Validate the hash of newly created objects
 * Implement lock API
 * Find or write a schema for APIMethodProjectRepoInfoLfsLocksVerifyPost's request model.
 * Consider separating out APILambdaIAMRole into separate roles for each lambda and/or get more specific with the log groups they can write to.
@@ -22,6 +20,8 @@
     * Quickstart guide
     * Deployment video
     * Documentation
+* ~~Implement verify callback~~ - I don't think we need this after adding the sha256 hash check to S3
+* ~~Validate the hash of newly created objects~~
 * ~~Fix S3 object store bucket logging~~
 * ~~Re-write into cloudformation for easy deployment~~
 * ~~Create test requests for each endpoint~~
