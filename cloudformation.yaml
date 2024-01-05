@@ -852,7 +852,7 @@ Resources:
               ArnLike:
                 aws:SourceArn: !Sub arn:aws:s3:::${S3ObjectStore}
               StringEquals:
-                aws:SourceAccount: !Ref AWS::AccountId					
+                aws:SourceAccount: !Ref "AWS::AccountId"
 
 
 
