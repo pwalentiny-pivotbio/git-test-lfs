@@ -77,9 +77,28 @@ class TestBatch(unittest.TestCase):
         #   - Really we should just do an API test using the requests library to see what we're after.
         #   - But we also need to know if this will work with the CLI anyway, right?!
 
+    def test_batch4_download_missing(self):
+        filename = os.path.join('test-repo', 'file1.lfs')
+        file_data_hash = _create_random_file(filename)
+        _commit_file(filename)
+
+        version_id = s3.head_object(
+            Bucket=config['stack']['s3objectstore'],
+            Key=f"project/test-repo.git/{file_data_hash}",
+        )['VersionId']
+
+        response = s3.delete_object(
+            Bucket=config['stack']['s3objectstore'],
+            Key=f"project/test-repo.git/{file_data_hash}",
+            VersionId=version_id
+        )
+
+        shutil.rmtree('test-repo')
+        _clone_repo('./test-remote', 'test-repo')
+
 
 def _clone_repo(remote, repo):
-    _run_process('git', 'clone', remote, repo, cwd='.')
+    return _run_process('git', 'clone', remote, repo, cwd='.')
 
 
 def _commit_file(filename, timeout=10):

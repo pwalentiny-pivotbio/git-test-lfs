@@ -1,3 +1,11 @@
+* In Batch API
+    * Return object error 410 is S3 returns a delete marker when downloading
+    * Return HTTP error 401 for missing credentials - technically this is the authentication TODO
+    * Return HTTP error 403 for read-only on upload - probably won't  use this for a while
+    * Return HTTP error 422 for one or more of the objects in the request. This means that none of the requested objects to upload are valid.
+    * Read through optional codes
+    * ~~Return object error 409 if hash algo is anything other than sha256~~
+    * ~~Return object error 404 for missing objects~~
 * Implement lock API
 * Find or write a schema for APIMethodProjectRepoInfoLfsLocksVerifyPost's request model.
 * Consider separating out APILambdaIAMRole into separate roles for each lambda and/or get more specific with the log groups they can write to.
